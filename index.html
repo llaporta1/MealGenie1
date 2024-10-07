@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Genie</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Optional if you want to style using CSS -->
+</head>
+<body>
+    <div class="container" style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+        <h1 style="text-align: center; color: #333;">Meal Genie</h1>
+        <p style="text-align: center; color: #666;">Enter the ingredients you have, and Meal Genie will find recipes for you!</p>
+        
+        <form id="ingredientsForm" style="text-align: center; margin-bottom: 20px;">
+            <input type="text" id="ingredients" style="width: 80%; padding: 10px; margin-bottom: 10px;" placeholder="e.g., eggs, chicken, tomatoes" />
+            <button type="submit" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; cursor: pointer;">Submit</button>
+        </form>
+
+        <div id="recipes">
+            <h2 style="text-align: center; color: #333;">Recipes</h2>
+            <ul id="recipeList" style="list-style-type: none; padding: 0;"></ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script> <!-- Link to your external JavaScript file -->
+</body>
+</html>
