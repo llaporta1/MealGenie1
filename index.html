@@ -1,27 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meal Genie</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Optional if you want to style using CSS -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MealGenie</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .description {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 18px;
+      color: #666;
+    }
+
+    form {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      font-size: 16px;
+      margin-bottom: 8px;
+      display: block;
+      color: #333;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: calc(100% - 20px);
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      display: block;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    /* Toggle Section */
+    #filtersContainer {
+      display: none;
+      margin-top: 10px;
+      padding-top: 15px;
+      border-top: 1px solid #ddd;
+    }
+
+    .filter-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .filter-row label {
+      width: 48%; /* Max two inputs per line */
+    }
+
+    input[type="number"] {
+      width: 48%; /* Ensure two inputs per row */
+    }
+
+    .toggle-filters {
+      text-align: center;
+      margin-bottom: 20px;
+      cursor: pointer;
+      color: #007bff;
+    }
+
+    .toggle-filters:hover {
+      text-decoration: underline;
+    }
+
+    .checkbox-group {
+      margin-bottom: 15px;
+    }
+
+    .checkbox-group label {
+      display: inline-block;
+      margin-right: 10px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container" style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
-        <h1 style="text-align: center; color: #333;">Meal Genie</h1>
-        <p style="text-align: center; color: #666;">Enter the ingredients you have, and Meal Genie will find recipes for you!</p>
-        
-        <form id="ingredientsForm" style="text-align: center; margin-bottom: 20px;">
-            <input type="text" id="ingredients" style="width: 80%; padding: 10px; margin-bottom: 10px;" placeholder="e.g., eggs, chicken, tomatoes" />
-            <button type="submit" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; cursor: pointer;">Submit</button>
-        </form>
 
-        <div id="recipes">
-            <h2 style="text-align: center; color: #333;">Recipes</h2>
-            <ul id="recipeList" style="list-style-type: none; padding: 0;"></ul>
-        </div>
+  <h1>MealGenie</h1>
+  <p class="description">Welcome to MealGenie! Simply input the ingredients you have at home, and we'll suggest recipes based on your preferences. You can also set dietary restrictions and nutrition targets for a more personalized experience.</p>
+
+  <form id="ingredientsForm">
+    <label for="ingredients">Ingredients:</label>
+    <input type="text" id="ingredients" placeholder="Enter ingredients separated by commas">
+
+    <!-- Toggle button to show or hide filters -->
+    <div class="toggle-filters" onclick="toggleFilters()">Click to add dietary restrictions and filters</div>
+
+    <!-- Hidden section for dietary restrictions and filters -->
+    <div id="filtersContainer">
+      <label>Dietary Restrictions:</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="diet" value="vegan"> Vegan</label>
+        <label><input type="checkbox" name="diet" value="vegetarian"> Vegetarian</label>
+        <label><input type="checkbox" name="diet" value="gluten free"> Gluten Free</label>
+        <label><input type="checkbox" name="diet" value="ketogenic"> Ketogenic</label>
+        <label><input type="checkbox" name="diet" value="paleo"> Paleo</label>
+      </div>
+
+      <div class="filter-row">
+        <label for="minCalories">Min Calories:</label>
+        <input type="number" id="minCalories" placeholder="e.g., 100">
+      </div>
+
+      <div class="filter-row">
+        <label for="maxCalories">Max Calories:</label>
+        <input type="number" id="maxCalories" placeholder="e.g., 500">
+      </div>
+
+      <div class="filter-row">
+        <label for="minProtein">Min Protein (grams):</label>
+        <input type="number" id="minProtein" placeholder="e.g., 10">
+      </div>
+
+      <div class="filter-row">
+        <label for="maxProtein">Max Protein (grams):</label>
+        <input type="number" id="maxProtein" placeholder="e.g., 50">
+      </div>
     </div>
 
-    <script src="script.js"></script> <!-- Link to your external JavaScript file -->
+    <button type="submit">Search Recipes</button>
+  </form>
+
+  <ul id="recipeList"></ul>
+
+  <script>
+    const API_KEY = '1347d10be1b547dc8f72ebd4fbe20ac5';  // Your API key
+    const API_URL = `https://api.spoonacular.com/recipes/complexSearch`;
+
+    // Function to toggle the visibility of the filters section
+    function toggleFilters() {
+      const filtersContainer = document.getElementById('filtersContainer');
+      filtersContainer.style.display = filtersContainer.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Function to fetch recipes from the Spoonacular API based on the ingredients input and additional filters
+    async function fetchRecipes(ingredients, diets, minCalories, maxCalories, minProtein, maxProtein) {
+      const query = encodeURIComponent(ingredients);
+      let url = `${API_URL}?includeIngredients=${query}&number=10&ranking=1&apiKey=${API_KEY}`;
+
+      // Add dietary restrictions if selected
+      if (diets.length > 0) {
+        const dietQuery = diets.join(',');
+        url += `&diet=${encodeURIComponent(dietQuery)}`;
+      }
+
+      // Add calorie and protein range if specified
+      if (minCalories) {
+        url += `&minCalories=${minCalories}`;
+      }
+      if (maxCalories) {
+        url += `&maxCalories=${maxCalories}`;
+      }
+      if (minProtein) {
+        url += `&minProtein=${minProtein}`;
+      }
+      if (maxProtein) {
+        url += `&maxProtein=${maxProtein}`;
+      }
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`API call failed with status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data.results;
+      } catch (error) {
+        console.error('Error fetching recipes:', error);
+        return [];
+      }
+    }
+
+    // Handle form submission
+    document.getElementById('ingredientsForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const ingredients = document.getElementById('ingredients').value.trim();
+      const dietCheckboxes = document.querySelectorAll('input[name="diet"]:checked');
+      const diets = Array.from(dietCheckboxes).map(checkbox => checkbox.value);
+      const minCalories = document.getElementById('minCalories').value;
+      const maxCalories = document.getElementById('maxCalories').value;
+      const minProtein = document.getElementById('minProtein').value;
+      const maxProtein = document.getElementById('maxProtein').value;
+
+      if (!ingredients) {
+        alert('Please enter some ingredients.');
+        return;
+      }
+
+      const recipes = await fetchRecipes(ingredients, diets, minCalories, maxCalories, minProtein, maxProtein);
+      displayRecipes(recipes);
+    });
+
+    // Function to display the fetched recipes on the webpage
+    function displayRecipes(recipes) {
+      const recipeList = document.getElementById('recipeList');
+      recipeList.innerHTML = '';
+
+      if (recipes.length === 0) {
+        recipeList.innerHTML = '<p>No recipes found. Please try different ingredients.</p>';
+        return;
+      }
+
+      recipes.forEach(recipe => {
+        const recipeUrl = `https://spoonacular.com/recipes/${recipe.title.toLowerCase().replace(/ /g, "-")}-${recipe.id}`;
+
+        const listItem = document.createElement('li');
+        listItem.style.marginBottom = '20px';
+
+        listItem.innerHTML = `
+          <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
+            <h3 style="color: #333;">${recipe.title}</h3>
+            <img src="${recipe.image}" alt="${recipe.title}" style="width: 100%; max-width: 300px; height: auto;" />
+            <a href="${recipeUrl}" target="_blank" style="color: #28a745;">View Recipe</a>
+          </div>
+        `;
+
+        recipeList.appendChild(listItem);
+      });
+    }
+  </script>
 </body>
 </html>

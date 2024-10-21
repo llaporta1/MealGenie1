@@ -1,46 +1,48 @@
-// API details (Updated with your API credentials)
-const API_ID = 'd20ccf21';  // Your application ID
-const API_KEY = 'ddaf13040618c84632b0ad1e42f08639';  // Your API key
-const API_URL = `https://api.edamam.com/search`;
+// Function to fetch recipes from the Spoonacular API based on the ingredients input and additional filters
+async function fetchRecipes(ingredients, diet, minCalories, maxCalories, minProtein, maxProtein) {
+  // URL-encode the ingredients and other parameters to handle special characters like spaces or commas
+  const query = encodeURIComponent(ingredients);
+  let url = `${API_URL}?includeIngredients=${query}&number=10&ranking=1&apiKey=${API_KEY}`;
+  
+  // Add dietary restrictions if selected
+  if (diet) {
+    url += `&diet=${encodeURIComponent(diet)}`;
+  }
 
-// Function to fetch recipes from the Edamam API based on the ingredients input
-async function fetchRecipes(ingredients) {
+  // Add calorie and protein range if specified
+  if (minCalories) {
+    url += `&minCalories=${minCalories}`;
+  }
+  if (maxCalories) {
+    url += `&maxCalories=${maxCalories}`;
+  }
+  if (minProtein) {
+    url += `&minProtein=${minProtein}`;
+  }
+  if (maxProtein) {
+    url += `&maxProtein=${maxProtein}`;
+  }
+
   try {
-    const response = await fetch(`${API_URL}?q=${ingredients}&app_id=${API_ID}&app_key=${API_KEY}`);
+    // Call Spoonacular API with query parameters
+    const response = await fetch(url);
+
+    // Check if the response status is OK (200)
+    if (!response.ok) {
+      throw new Error(`API call failed with status: ${response.status}`);
+    }
+
     const data = await response.json();
-    return data.hits.map(hit => hit.recipe);
+
+    // Log the response for debugging purposes
+    console.log(data);
+
+    // Return the array of recipes from the API response
+    return data.results;
   } catch (error) {
     console.error('Error fetching recipes:', error);
     return [];
   }
-}
-
-// Function to display the fetched recipes on the webpage
-function displayRecipes(recipes) {
-  const recipeList = document.getElementById('recipeList');
-  recipeList.innerHTML = '';  // Clear any previous results
-  
-  if (recipes.length === 0) {
-    recipeList.innerHTML = '<p>No recipes found. Please try different ingredients.</p>';
-    return;
-  }
-
-  recipes.forEach(recipe => {
-    const listItem = document.createElement('li');
-    listItem.style.marginBottom = '20px';
-
-    listItem.innerHTML = `
-      <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px;">
-        <h3 style="color: #333;">${recipe.label}</h3>
-        <img src="${recipe.image}" alt="${recipe.label}" style="width: 100%; max-width: 300px; height: auto;" />
-        <p><strong>Source:</strong> ${recipe.source}</p>
-        <p><strong>Calories:</strong> ${Math.round(recipe.calories)}</p>
-        <a href="${recipe.url}" target="_blank" style="color: #28a745;">View Recipe</a>
-      </div>
-    `;
-
-    recipeList.appendChild(listItem);
-  });
 }
 
 // Handle form submission
@@ -48,12 +50,18 @@ document.getElementById('ingredientsForm').addEventListener('submit', async func
   e.preventDefault();  // Prevent the form from submitting normally
 
   const ingredients = document.getElementById('ingredients').value.trim();
+  const diet = document.getElementById('diet').value;
+  const minCalories = document.getElementById('minCalories').value;
+  const maxCalories = document.getElementById('maxCalories').value;
+  const minProtein = document.getElementById('minProtein').value;
+  const maxProtein = document.getElementById('maxProtein').value;
+
   if (!ingredients) {
     alert('Please enter some ingredients.');
     return;
   }
 
-  // Fetch and display recipes based on the entered ingredients
-  const recipes = await fetchRecipes(ingredients);
+  // Fetch and display recipes based on the entered ingredients and filters
+  const recipes = await fetchRecipes(ingredients, diet, minCalories, maxCalories, minProtein, maxProtein);
   displayRecipes(recipes);
 });
